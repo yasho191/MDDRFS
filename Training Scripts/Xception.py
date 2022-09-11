@@ -1,10 +1,10 @@
-from tensorflow.keras.applications import ResNet152V2
+from tensorflow.keras.applications import Xception
 from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
 
 def base_model():
-    # Define ResNet152V2
-    base = ResNet152V2(include_top=False, weights='imagenet', input_shape=(256, 256, 3))
+    # Define Xception
+    base = Xception(include_top=False, weights='imagenet', input_shape=(256, 256, 3))
     
     # Freeze Layers
     for layer in base.layers:
@@ -13,7 +13,7 @@ def base_model():
     return base
 
 # For binary classification (classes = 1)
-def ResNet(classes):
+def XceptionNet(classes):
     base_network = base_model()
     if classes > 1:
         act = 'softmax'
@@ -29,5 +29,5 @@ def ResNet(classes):
     x = Dropout(0.3)(x)
     output_layer = Dense(classes, activation=act)(x)
 
-    model = Model(inputs=input_layer, outputs=output_layer, name="ResNet152V2")
+    model = Model(inputs=input_layer, outputs=output_layer, name="XceptionNet")
     return model
