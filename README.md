@@ -1,2 +1,1 @@
-# MDDRFS
-Multi-Disease Detection Using Retinal Fundus Scans
+# Multi-Disease Detection Using Retinal Fundus Scans - (MDDRFS)
