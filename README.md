@@ -23,7 +23,7 @@ Models:
 4. Densnet201
 5. XceptionNet
 6. EfficientNetV2 (S, M, L)
-7. ConvNeXt (Tiny, Samll, Base) - Latest Addition to Keras
+7. ConvNeXt (Tiny, Small, Base) - Latest Addition to Keras
 
 Lightweight Architectures:
 
