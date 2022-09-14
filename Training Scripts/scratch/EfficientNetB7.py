@@ -1,4 +1,3 @@
-import tensorflow as tf
 from tensorflow.keras.applications import EfficientNetB7
 from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
@@ -26,7 +25,7 @@ def EfficientNet(classes):
     x = Dropout(0.3)(x)
     x = Dense(512)(x)
 
-    output_layer = Dense(classes)
+    output_layer = Dense(classes, activation=act)(x)
 
     model = Model(input_layer=input_layer, output_layer=output_layer, name="EfficientNetB7")
 
