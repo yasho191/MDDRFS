@@ -4,11 +4,11 @@ from tensorflow.keras.models import Model
 
 def base_model(model_type):
     # Define EfficientV2
-    if model_type == 'S':
+    if model_type.upper() == 'S':
         base = EfficientNetV2S(include_top=False, weights='imagenet', input_shape=(256, 256, 3))
-    elif model_type == 'M':
+    elif model_type.upper() == 'M':
         base = EfficientNetV2M(include_top=False, weights='imagenet', input_shape=(256, 256, 3))
-    elif model_type == 'L':
+    elif model_type.upper() == 'L':
         base = EfficientNetV2L(include_top=False, weights='imagenet', input_shape=(256, 256, 3))
     else:
         raise TypeError(f"Invalid Input: {model_type}\nThere is no model type called {model_type}. Model Should be one of [S, M, L]")
