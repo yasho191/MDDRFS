@@ -26,8 +26,8 @@ def MobileNet(classes):
     x = base_network(input_layer)
     x = GlobalAveragePooling2D()(x)
     x = Dense(1024, activation='relu')(x)
-    x = Dense(512, activation='relu')(x)
     x = Dropout(0.3)(x)
+    x = Dense(512, activation='relu')(x)
     output_layer = Dense(classes, activation=act)(x)
 
     model = Model(inputs=input_layer, outputs=output_layer, name="MobileNetV2")

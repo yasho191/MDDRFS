@@ -22,8 +22,8 @@ def DenseNet(classes):
     x = base_network(input_layer)
     x = GlobalAveragePooling2D()(x)
     x = Dense(1024)(x)
-    x = Dense(512)(x)
     x = Dropout(0.3)(x)
+    x = Dense(512)(x)
     output_layer = Dense(classes, activation=act)(x)
 
     model = Model(inputs=input_layer, outputs=output_layer, name="DenseNet201")
