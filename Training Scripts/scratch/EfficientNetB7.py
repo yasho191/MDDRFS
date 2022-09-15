@@ -8,7 +8,7 @@ def base_model():
     return base
 
 
-def EfficientNet(classes):
+def EfficientNetV1(classes):
     base_network = base_model()
 
     if classes > 1:
