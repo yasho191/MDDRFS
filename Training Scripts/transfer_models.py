@@ -20,4 +20,3 @@ def model_generator(name, classes):
         return EfficientNetV1(classes)
     else:
         raise TypeError(f"No model named: {name}\nModel name should be one of [densenet, mobilenet, resnet, xceptionnet, efficientnetv1, efficientnetv2s, efficientnetv2m, efficientnetv2l]")
-        

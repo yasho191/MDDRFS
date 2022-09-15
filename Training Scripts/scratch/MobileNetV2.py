@@ -8,7 +8,7 @@ def base_model():
     return base
 
 
-def EfficientNet(classes):
+def MobileNet(classes):
     base_network = base_model()
 
     if classes > 1:
