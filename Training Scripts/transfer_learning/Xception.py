@@ -2,7 +2,7 @@ from tensorflow.keras.applications import Xception
 from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
 
-def base_model():
+def base_model() -> Model:
     # Define Xception
     base = Xception(include_top=False, weights='imagenet', input_shape=(256, 256, 3))
     
@@ -13,7 +13,7 @@ def base_model():
     return base
 
 # For binary classification (classes = 1)
-def XceptionNet(classes):
+def XceptionNet(classes: int) -> Model:
     base_network = base_model()
     if classes > 1:
         act = 'softmax'

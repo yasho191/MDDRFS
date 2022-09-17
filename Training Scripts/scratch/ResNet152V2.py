@@ -1,15 +1,14 @@
-import tensorflow as tf
-from tf.keras.applications import ResNet152V2
-from tf.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D
-from tf.keras.models import Model
+from tensorflow.keras.applications import ResNet152V2
+from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D
+from tensorflow.keras.models import Model
 
-def base_model():
+def base_model() -> Model:
     # ResNet152V2
     base = ResNet152V2(include_top=False, weights=None, input_size=(256, 256, 3))
     return base
 
 
-def ResNet(classes):
+def ResNet(classes: int) -> Model:
     base_network = base_model()
 
     if classes > 1:

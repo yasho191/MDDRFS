@@ -5,7 +5,7 @@ from transfer_learning.MobileNetV2 import MobileNet
 from transfer_learning.ResNet152V2 import ResNet
 from transfer_learning.Xception import XceptionNet
 
-def model_generator(name, classes):
+def model_generator(name: str, classes: int):
     if name.lower() == 'densenet':
         return DenseNet(classes)
     elif name.lower == 'resnet':

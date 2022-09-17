@@ -2,13 +2,12 @@ from tensorflow.keras.applications import EfficientNetB7
 from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
 
-def base_model():
+def base_model() -> Model:
     # EfficientNetB7
     base = EfficientNetB7(include_top=False, weights=None, input_shape=(256, 256, 3))
     return base
 
-
-def EfficientNetV1(classes):
+def EfficientNetV1(classes: int) -> Model:
     base_network = base_model()
 
     if classes > 1:

@@ -5,7 +5,7 @@ from scratch.MobileNetV2 import MobileNet
 from scratch.ResNet152V2 import ResNet
 from scratch.Xception import XceptionNet
 
-def model_generator(name, classes):
+def model_generator(name: str, classes: int):
     if name.lower() == 'densenet':
         return DenseNet(classes)
     elif name.lower == 'resnet':

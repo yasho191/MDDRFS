@@ -2,7 +2,7 @@ from tensorflow.keras.applications import EfficientNetV2L, EfficientNetV2M, Effi
 from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
 
-def base_model(model_type):
+def base_model(model_type: str) -> Model:
 
     # Define EfficientV2
     if model_type.upper() == 'S':
@@ -17,7 +17,7 @@ def base_model(model_type):
     return base
 
 # For binary classification (classes = 1)
-def EfficientNetV2(model_type, classes):
+def EfficientNetV2(model_type: str, classes: int) -> Model:
 
     base_network = base_model(model_type)
 

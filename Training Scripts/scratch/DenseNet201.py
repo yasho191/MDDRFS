@@ -1,15 +1,13 @@
-import tensorflow as tf
-from tensorflow.keras.applications import DesnseNet201
+from tensorflow.keras.applications import DenseNet201
 from tensorflow.keras.layers import Input, Dense, Dropout, GlobalAveragePooling2D
 from tensorflow.keras.models import Model
 
-def base_model():
+def base_model() -> Model:
     # Define DenseNet201
-    base = DesnseNet201(include_top=False, weights=None, input_shape=(256, 256, 3))
+    base = DenseNet201(include_top=False, weights=None, input_shape=(256, 256, 3))
     return base
 
-
-def DenseNet(classes):
+def DenseNet(classes: int) -> Model:
     base_network = base_model()
     
     if classes > 1:
