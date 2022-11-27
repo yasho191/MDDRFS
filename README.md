@@ -7,9 +7,12 @@ Data Sources:
 Segmentation:
 1. [High-Resolution Fundus (HRF) Image Database](https://www5.cs.fau.de/research/data/fundus-images/)
 2. [Drive Grand Challenege](https://drive.grand-challenge.org/Download/)
+3. [PAPILA: Dataset with fundus images and clinical data of both eyes of the same patient for glaucoma assessment](https://pubmed.ncbi.nlm.nih.gov/35680965/)
 
 Classification:
 1. [Retinal Image Analysis for multi-Disease Detection Challenge](https://riadd.grand-challenge.org/Download/)
+2. [FIVES: A Fundus Image Dataset for Artificial Intelligence based Vessel Segmentation](https://www.nature.com/articles/s41597-022-01564-3#Sec7)
+3. [Retinal fundus images for glaucoma analysis: the RIGA dataset](https://deepblue.lib.umich.edu/data/concern/data_sets/3b591905z)
 
 
 ### Model Reference Page:
