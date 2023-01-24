@@ -69,5 +69,5 @@ def UNet(input_size: int, start_neurons: int, upsample: str) -> Model:
 
     output_layer = Conv2D(1, (1,1), padding="same", activation="sigmoid")(x)
 
-    model = Model(inputs=input_layer, outputs=output_layer, name="Unet-Transpose")
+    model = Model(inputs=input_layer, outputs=output_layer, name="Unet")
     return model
