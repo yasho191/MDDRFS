@@ -54,6 +54,7 @@ if os.path.exists(f'Models/{MODEL_NAME}_model'):
     classes = []
     for pred in predictions:
         cls = list(pred).index(pred.max())
+        classes.append(cls)
             
     accuracy = accuracy_score(list(test_data.classes), classes)
     f1 = f1_score(list(test_data.classes), classes, average=None)
