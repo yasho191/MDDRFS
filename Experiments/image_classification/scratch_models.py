@@ -1,9 +1,9 @@
-from scratch.DenseNet201 import DenseNet
-from scratch.EfficientNetB7 import EfficientNetV1
-from scratch.EfficientNetV2 import EfficientNetV2
-from scratch.MobileNetV2 import MobileNet
-from scratch.ResNet152V2 import ResNet
-from scratch.Xception import XceptionNet
+from image_classification.scratch.DenseNet201 import DenseNet
+from image_classification.scratch.EfficientNetB7 import EfficientNetV1
+from image_classification.scratch.EfficientNetV2 import EfficientNetV2
+from image_classification.scratch.MobileNetV2 import MobileNet
+from image_classification.scratch.ResNet152V2 import ResNet
+from image_classification.scratch.Xception import XceptionNet
 
 def model_generator(name: str, classes: int):
     if name.lower() == 'densenet':

@@ -1,9 +1,9 @@
-from transfer_learning.DenseNet201 import DenseNet
-from transfer_learning.EfficientNetB7 import EfficientNetV1
-from transfer_learning.EfficientNetV2 import EfficientNetV2
-from transfer_learning.MobileNetV2 import MobileNet
-from transfer_learning.ResNet152V2 import ResNet
-from transfer_learning.Xception import XceptionNet
+from image_classification.transfer_learning.DenseNet201 import DenseNet
+from image_classification.transfer_learning.EfficientNetB7 import EfficientNetV1
+from image_classification.transfer_learning.EfficientNetV2 import EfficientNetV2
+from image_classification.transfer_learning.MobileNetV2 import MobileNet
+from image_classification.transfer_learning.ResNet152V2 import ResNet
+from image_classification.transfer_learning.Xception import XceptionNet
 
 def model_generator(name: str, classes: int):
     if name.lower() == 'densenet':
