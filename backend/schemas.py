@@ -65,12 +65,13 @@ class PatientHistoryRegistration(BaseModel):
     patient_id: int
     test_type: str
     description: str
-    
+
     class Config:
         orm_mode = True
 
 
 class PatientHistory(BaseModel):
+    id: int
     patient_id: int
     doctor_id: int
     test_type: str

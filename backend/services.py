@@ -13,19 +13,29 @@ import os
 import tensorflow as tf
 from fpdf import FPDF
 import numpy as np
+import torch
+from torch_models.unet import build_unet
+import cv2
 
 
 JWT_SECRET = "mysecret"
 oauth2schema = security.OAuth2PasswordBearer(tokenUrl="/api/token")
 
-'''
+"""
 ----------------------------------------------------------------
 Model Loading
 ----------------------------------------------------------------
-'''
-disease_model = tf.keras.models.load_model('tf_models/multiclass_classification/mobilenet_model', compile=False)
-risk_model = tf.keras.models.load_model('tf_models/binary_classification/efficientnetv2m_model')     
-# segmentation_model = tf.keras.models.load_model('tf_models/segmentation_model')
+"""
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+disease_model = 0
+risk_model = 0
+# disease_model = tf.keras.models.load_model('tf_models/multiclass_classification/mobilenet_model', compile=False)
+# risk_model = tf.keras.models.load_model('tf_models/binary_classification/efficientnetv2m_model')
+segmentation_model = build_unet()
+segmentation_model = segmentation_model.to(device)
+segmentation_model.load_state_dict(
+    torch.load("torch_models/segmentation/checkpoint.pth", map_location=device)
+)
 
 
 """
@@ -33,6 +43,8 @@ risk_model = tf.keras.models.load_model('tf_models/binary_classification/efficie
 Database configuration
 ----------------------------------------------------------------
 """
+
+
 def create_database():
     return database.Base.metadata.create_all(bind=database.engine)
 
@@ -50,14 +62,22 @@ def get_db():
 Functions for Image loading and saving
 ----------------------------------------------------------------
 """
+
+
 def read_image(file):
     file = BytesIO(file)
     image = Image.open(file)
-    image = image.convert('RGB')
-    l,h = image.size
-    dif = abs(l-h)//2
-    image = image.crop([dif,0,l-dif,h])
+    image = image.convert("RGB")
+    l, h = image.size
+    dif = abs(l - h) // 2
+    image = image.crop([dif, 0, l - dif, h])
     return np.array(image)
+
+
+def mask_parse(mask):
+    mask = np.expand_dims(mask, axis=-1)
+    mask = np.concatenate([mask, mask, mask], axis=-1)
+    return mask
 
 
 def save_image(image, scan_path):
@@ -71,26 +91,15 @@ def save_image(image, scan_path):
 Inference Functions - Deep learning models
 ----------------------------------------------------------------
 """
-def load_model(type: str):
-    if type == "risk":
-        risk_model = tf.keras.models.load_model('tf_models/binary_classification/efficientnetv2m_model')
-        return risk_model
-    elif type == "disease":
-        disease_model = tf.keras.models.load_model('tf_models/multiclass_classification/efficientnetv2m_model')
-        return disease_model
-    elif type == "segmentation":
-        segmentation_model = tf.keras.models.load_model('tf_models/segmentation_model')
-        return segmentation_model
-    else:
-        raise ValueError(f"Invalid model type {type}")
 
 
-def predict_risk(image: np.ndarray):
+def predict_risk(image_path: str):
+    image = cv2.imread(image_path, cv2.IMREAD_COLOR)
     # convert image
     image = np.resize(image, (360, 360, 3))
     # image = image/255.
     image = np.expand_dims(image, 0)
-    
+
     # Run prediction
     pred = risk_model.predict(image)
     if pred[0][0] > 0.1:
@@ -99,24 +108,62 @@ def predict_risk(image: np.ndarray):
         return f"Risk - You might be at a risk of opthalmic disease!"
 
 
-def predict_disease(image: Image.Image):
+def predict_disease(image_path: str):
     # convert image
+    image = cv2.imread(image_path, cv2.IMREAD_COLOR)
     image = np.resize(image, (360, 360, 3))
     image = np.expand_dims(image, 0)
-    image = image/255.
+    image = image / 255.0
     # Run prediction
-    mapping = {'ARMD': 0, 'BRVO': 1, 'CRS': 2, 'CRVO': 3, 'CSR': 4, 'DN': 5, 'DR': 6, 'LS': 7, 'MH': 8, 'MYA': 9, 'ODC': 10, 'ODE': 11, 'ODP': 12, 'OTHER': 13, 'RPEC': 14, 'RS': 15, 'TSLN': 16}
+    mapping = {
+        "ARMD": 0,
+        "BRVO": 1,
+        "CRS": 2,
+        "CRVO": 3,
+        "CSR": 4,
+        "DN": 5,
+        "DR": 6,
+        "LS": 7,
+        "MH": 8,
+        "MYA": 9,
+        "ODC": 10,
+        "ODE": 11,
+        "ODP": 12,
+        "OTHER": 13,
+        "RPEC": 14,
+        "RS": 15,
+        "TSLN": 16,
+    }
     pred = disease_model.predict(image)
 
     i = 0
     for key in mapping.keys():
-        mapping[key] = pred[0][i]
+        mapping[key] = round(float(pred[0][i] * 100), 2)
         i += 1
     return mapping
 
 
-def predict_segmentation(image: Image.Image):
-    return image
+def predict_segmentation(image_path: str):
+    image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    image = np.transpose(image, (2, 0, 1))
+    image = image / 255.0
+    image = np.expand_dims(image, axis=0)
+    image = image.astype(np.float32)
+    image = torch.from_numpy(image)
+    image = image.to(device)
+    segmentation_model.eval()
+    with torch.no_grad():
+        """Prediction"""
+        pred_y = segmentation_model(image)
+        pred_y = torch.sigmoid(pred_y)
+        pred_y = pred_y[0].cpu().numpy()
+        pred_y = np.squeeze(pred_y, axis=0)
+        pred_y = pred_y > 0.5
+        pred_y = np.array(pred_y, dtype=np.uint8)
+
+    pred_y = mask_parse(pred_y)
+    pred_y = pred_y * 255
+    return pred_y
 
 
 """
@@ -126,6 +173,8 @@ Doctor Functions:
 - Create Doctor
 ----------------------------------------------------------------
 """
+
+
 async def get_doctor_by_email(email: str, db: orm.Session):
     return db.query(models.Doctor).filter(models.Doctor.email == email).first()
 
@@ -185,6 +234,50 @@ async def get_current_doctor(
 
     return schemas.Doctor.from_orm(doctor)
 
+
+"""
+----------------------------------------------------------------
+Dashboard Details
+- Number of Doctors on Platform
+- Number of Patients on Platform
+- Number of patient a Doctor has
+- Number of tests performed by a doctor
+- Total test performed on Platform
+----------------------------------------------------------------
+"""
+
+
+async def get_num_doctors(db: orm.Session):
+    num_doctors = db.query(models.Doctor).count()
+    return num_doctors
+
+
+async def get_num_patients(db: orm.Session):
+    num_patients = db.query(models.Patient).count()
+    return num_patients
+
+
+async def get_num_test(db: orm.Session):
+    num_test = db.query(models.PatientHistory).count()
+    return num_test
+
+
+async def get_num_patients_for_doctor(doctor: schemas.Doctor, db: orm.Session):
+    num_patients = (
+        db.query(models.Patient).filter(models.Patient.doctor_id == doctor.id).count()
+    )
+    return num_patients
+
+
+async def get_num_test_for_doctor(doctor: schemas.Doctor, db: orm.Session):
+    num_test = (
+        db.query(models.PatientHistory)
+        .filter(models.PatientHistory.doctor_id == doctor.id)
+        .count()
+    )
+    return num_test
+
+
 """
 ----------------------------------------------------------------
 Patient Related Services
@@ -194,6 +287,7 @@ Patient Related Services
 - List a Patient
 ----------------------------------------------------------------
 """
+
 
 async def create_new_patient(
     patient: schemas.PatientRegistration, doctor: schemas.Doctor, db: orm.Session
@@ -284,6 +378,8 @@ Patient History Functions
 - Show a Patient History
 ----------------------------------------------------------------
 """
+
+
 async def create_new_patient_history(
     patient_history: schemas.PatientHistoryRegistration,
     scan_path: str,
@@ -304,7 +400,9 @@ async def create_new_patient_history(
     return schemas.PatientHistory.from_orm(patient_history_obj)
 
 
-async def patient_history_selector(patient_history_id: int, patient_id: int, doctor: schemas.Doctor, db: orm.Session):
+async def patient_history_selector(
+    patient_history_id: int, patient_id: int, doctor: schemas.Doctor, db: orm.Session
+):
     patient_history = (
         db.query(models.PatientHistory)
         .filter(models.PatientHistory.doctor_id == doctor.id)
@@ -312,11 +410,15 @@ async def patient_history_selector(patient_history_id: int, patient_id: int, doc
         .filter(models.PatientHistory.id == patient_history_id)
         .first()
     )
+    if patient_history is None:
+        raise HTTPException(status_code=404, detail="Patient History does not exist!")
 
     return patient_history
 
 
-async def get_patients_history_for_doctor(patient_id: int, doctor: schemas.Doctor, db: orm.Session):
+async def get_complete_patient_history_for_doctor(
+    patient_id: int, doctor: schemas.Doctor, db: orm.Session
+):
     patient_history = (
         db.query(models.PatientHistory)
         .filter(models.PatientHistory.doctor_id == doctor.id)
@@ -327,38 +429,145 @@ async def get_patients_history_for_doctor(patient_id: int, doctor: schemas.Docto
     return list(map(schemas.PatientHistory.from_orm, patient_history))
 
 
-async def get_patient_history_for_doctor(patient_history_id: int, patient_id: int, doctor: schemas.Doctor, db: orm.Session):
-    patient_history = await patient_history_selector(patient_history_id, patient_id, doctor, db)
+async def get_single_patient_history_for_doctor(
+    patient_history_id: int, patient_id: int, doctor: schemas.Doctor, db: orm.Session
+):
+    patient_history = await patient_history_selector(
+        patient_history_id, patient_id, doctor, db
+    )
 
     return schemas.PatientHistory.from_orm(patient_history)
+
 
 """
 Download Files
 - Scans 
 - Reports
 """
+
+
 def download_scans(path: str):
     return FileResponse(path)
+
 
 def download_reports(path: str):
     return FileResponse(path)
 
+
 """
 Generate Reports
 """
-def generate_report(prediction, report_path):
+
+
+def generate_report(data, scan, prediction, report_path, task_type):
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font('Arial', 'B', 16)
-    if type(prediction) == type(dict()):
-        i = 0
+    pdf.set_font("Times", size=20)
+    line_height = pdf.font_size * 2.5
+    col_width = (pdf.w - 2 * pdf.l_margin) / 4
+
+    pdf.cell(col_width * 4, line_height, "Patient History Report", align="C")
+    pdf.ln(line_height)
+
+    pdf.set_font("Times", size=15)
+    pdf.cell(col_width * 4, line_height, "Patient Information")
+    pdf.ln(line_height)
+
+    pdf.set_font("Times", size=10)
+    line_height = pdf.font_size * 2.5
+
+    i = 0
+    for row in data:
+        for datum in row:
+            if i == 16:
+                break
+            pdf.multi_cell(
+                col_width,
+                line_height,
+                str(datum),
+                border=1,
+                new_x="RIGHT",
+                new_y="TOP",
+                max_line_height=pdf.font_size,
+                markdown=True,
+            )
+            i += 1
+
+        pdf.ln(line_height)
+        if i == 16:
+            pdf.ln(line_height)
+            break
+
+    pdf.set_font("Times", size=15)
+    pdf.cell(col_width * 4, line_height, "Patient History")
+    pdf.ln(line_height)
+
+    pdf.set_font("Times", size=10)
+    line_height = pdf.font_size * 2.5
+    pdf.multi_cell(
+        col_width * 4,
+        line_height,
+        str(data[4][1]),
+        border=1,
+        new_x="RIGHT",
+        new_y="TOP",
+        max_line_height=pdf.font_size * 1.5,
+        markdown=True,
+    )
+    pdf.ln(line_height)
+    pdf.ln(line_height)
+
+    pdf.set_font("Times", size=15)
+    pdf.cell(col_width * 4, line_height, "Patient Allergies")
+    pdf.ln(line_height)
+
+    pdf.set_font("Times", size=10)
+    line_height = pdf.font_size * 2.5
+    pdf.multi_cell(
+        col_width * 4,
+        line_height,
+        str(data[5][1]),
+        border=1,
+        new_x="RIGHT",
+        new_y="TOP",
+        max_line_height=pdf.font_size * 1.5,
+        markdown=True,
+    )
+
+    pdf.ln(line_height)
+    pdf.ln(line_height)
+
+    pdf.set_font("Times", size=15)
+    pdf.cell(col_width * 4, line_height, "Patient Scan")
+    pdf.ln(line_height)
+    pdf.image(scan, w=50, h=50)
+    pdf.ln(line_height)
+    pdf.cell(col_width * 4, line_height, "Predictions")
+    pdf.ln(line_height)
+    pdf.set_font("Times", size=10)
+    line_height = pdf.font_size * 2.5
+
+    if task_type == "disease_detection":
+        i = 1
         for key in prediction.keys():
             pred = str(prediction[key])
-            w = 40
-            h = 10
-            pdf.cell(w, h, f'{key}: {pred}')
-            pdf.ln(10)
-    else:
+            pdf.multi_cell(
+                col_width,
+                line_height,
+                f"{key}: {pred}",
+                border=1,
+                new_x="RIGHT",
+                new_y="TOP",
+                max_line_height=pdf.font_size * 1.5,
+                markdown=True,
+            )
+            if i % 4 == 0:
+                pdf.ln(line_height)
+            i += 1
+    elif task_type == "risk_classification":
         pdf.cell(40, 10, str(prediction))
-    pdf.output(report_path, 'F')
+    elif task_type == "nerve_segmentation":
+        pdf.image(prediction, w=50, h=50)
+
+    pdf.output(report_path, "F")
     return "Report generated sucessfully!"
