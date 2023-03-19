@@ -1,0 +1,7 @@
+.color-nav {
+    background-color:#01347c;
+}
+
+.navbar-nav .nav-item a {
+    color: white !important;
+  }
