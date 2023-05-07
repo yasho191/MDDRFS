@@ -16,7 +16,7 @@ function Home() {
               <p style={{ "text-align": "justify" }}>DeepEye uses a Deep Convolutional Neural Network built on the lastest State of the Art Architectures like ResNet, Alexnet, Vision Transformer. This ensures consistent performance and accurate results in real-world application. To get more information about our method please refer our Research Paper.</p>
             </Col>
             <Col md={6}>
-              <Image src={"/images/hero-herder.jpg_fit=scale"} alt="Your Image" fluid style={{ "height": "50%", "margin": "5%" }} rounded/>
+              <Image src={"/images/hero-herder.jpg_fit=scale"} alt="Your Image" fluid style={{ "height": "50%", "margin": "1%" }} rounded/>
             </Col>
           </Row>
           <Row className="align-items-center" style={{ "margin-bottom": "2%" }}>
@@ -41,7 +41,7 @@ function Home() {
               </p>
             </Col>
             <Col md={6}>
-              <Image src={"/images/neural_networks.png"} alt="Your Image" fluid style={{ height: "300px", "margin": "5%" }} />
+              <Image src={"/images/neural_networks.png"} alt="Your Image" fluid style={{ height: "300px", "margin": "1%" }} />
             </Col>
           </Row>
           <Row className="align-items-center card-container">

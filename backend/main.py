@@ -72,8 +72,10 @@ async def register_doctor(
     db_doctor = await services.get_doctor_by_email(doctor.email, db)
     if db_doctor:
         raise HTTPException(status_code=400, detail="Email already in use!")
+    
+    doctor = await services.create_doctor_account(doctor, db)
 
-    return await services.create_doctor_account(doctor, db)
+    return await services.create_token(doctor)
 
 
 @app.post("/api/token")
@@ -157,6 +159,24 @@ async def get_single_patient_for_doctor(
     patient_info: schemas.Patient
     """
     return await services.get_patient_for_doctor(patient_id, doctor, db)
+
+
+@app.get("/api/doctors/get_patients_by_name/{patient_first_name}", status_code=200)
+async def get_single_patient_for_doctor_by_name(
+    patient_first_name: str,
+    doctor: schemas.Doctor = fastapi.Depends(services.get_current_doctor),
+    db: orm.Session = fastapi.Depends(get_db),
+):
+    """
+    API for getting patient information query = first_name
+
+    args:
+    patient_id: int
+
+    returns:
+    patient_info: schemas.Patient
+    """
+    return await services.get_patients_for_doctor_by_name(patient_first_name, doctor, db)
 
 
 @app.delete("/api/doctors/delete_patients/{patient_id}", status_code=204)

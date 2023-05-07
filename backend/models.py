@@ -5,6 +5,7 @@ from sqlalchemy import orm
 from passlib import hash
 import database
 
+
 class Doctor(database.Base):
     __tablename__ = "doctors"
     id = Column(Integer, primary_key=True, index=True)
@@ -23,7 +24,9 @@ class Doctor(database.Base):
 class Patient(database.Base):
     __tablename__ = "patients"
     id = Column(Integer, primary_key=True, index=True)
-    doctor_id = Column(Integer, ForeignKey("doctors.id", ondelete='CASCADE'), nullable=False)
+    doctor_id = Column(
+        Integer, ForeignKey("doctors.id", ondelete="CASCADE"), nullable=False
+    )
     email = Column(String, unique=True, index=True, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
@@ -35,11 +38,16 @@ class Patient(database.Base):
     weight = Column(Float, nullable=True)
     height = Column(Float, nullable=True)
 
+
 class PatientHistory(database.Base):
     __tablename__ = "patient_history"
     id = Column(Integer, primary_key=True, index=True)
-    patient_id = Column(Integer, ForeignKey("patients.id", ondelete='CASCADE'), nullable=False)
-    doctor_id = Column(Integer, ForeignKey("doctors.id", ondelete='CASCADE'), nullable=False)
+    patient_id = Column(
+        Integer, ForeignKey("patients.id", ondelete="CASCADE"), nullable=False
+    )
+    doctor_id = Column(
+        Integer, ForeignKey("doctors.id", ondelete="CASCADE"), nullable=False
+    )
     test_type = Column(String, nullable=False)
     description = Column(String, nullable=False)
     scan_path = Column(String, nullable=False)

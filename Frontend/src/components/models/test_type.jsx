@@ -1,3 +1,4 @@
+import { Container, Row, Col } from "react-bootstrap";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import './test_type.css';
@@ -5,8 +6,10 @@ import './test_type.css';
 function TestType() {
   return (
     <div className="card-container">
-      <div>
-        <Card style={{ width: "18rem" }}>
+      <Container>
+        <Row>
+        <Col>
+        <Card style={{ width: "19rem" }}>
           <Card.Img variant="top" src="/images/nerve_segmentation.png" />
           <Card.Body>
             <Card.Title>Risk Classification</Card.Title>
@@ -17,9 +20,11 @@ function TestType() {
             <Button variant="primary" href="/risk_classification">Select</Button>
           </Card.Body>
         </Card>
-      </div>
-      <div>
-        <Card style={{ width: "18rem" }}>
+        </Col>
+        
+      
+        <Col>
+        <Card style={{ width: "19rem" }}>
           <Card.Img variant="top" src="/images/risk_classification.png" />
           <Card.Body>
             <Card.Title>Disease Detection</Card.Title>
@@ -30,9 +35,10 @@ function TestType() {
             <Button variant="primary" href="/disease_detection">Select</Button>
           </Card.Body>
         </Card>
-      </div>
-      <div>
-        <Card style={{ width: "18rem" }}>
+        </Col>
+        
+        <Col>
+        <Card style={{ width: "19rem" }}>
           <Card.Img variant="top" src="/images/nerve_segmentation.png" />
           <Card.Body>
             <Card.Title>Nerve Segmentation</Card.Title>
@@ -43,7 +49,11 @@ function TestType() {
             <Button variant="primary" href="/nerve_segmentation">Select</Button>
           </Card.Body>
         </Card>
-      </div>
+        </Col>
+        
+        </Row>
+        
+      </Container>
     </div>
   );
 }

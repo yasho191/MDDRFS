@@ -1,32 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Form, Button, Container, Row, Col, Image } from 'react-bootstrap';
+import { UserContext } from "../../context/UserContext";
+import Spinner from 'react-bootstrap/Spinner';
 import Footer from '../footer/footer';
 import NavBar from '../navbar/navbar';
 import './nerve_segmentation.css';
+import ErrorMessage from '../error_message/ErrorMessage';
+import SuccessMessage from '../success_message/SuccessMessage';
+
 
 function NerveSegmentation() {
-  const [name, setName] = useState('');
-  const [id, setId] = useState('');
+  const [id, setId] = useState("");
+  const [description, setDescription] = useState("");
+  const [errormessage, setErrorMessage] = useState("");
+  const [successmessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
+  const [token,] = useContext(UserContext);
 
-  const handleNameChange = (event) => {
-    setName(event.target.value);
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
+  
 
-  const handleIdChange = (event) => {
-    setId(event.target.value);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    const formData = new FormData();
+    formData.append("patient_id", id);
+    formData.append("test_type", "nerve segmentation");
+    formData.append("description", description);
+    formData.append("file", image);
+  
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+      // body contains all the input values to the API
+      body: formData
+    };
+
+    const response = await fetch("/api/doctors/upload_scan/nerve_segmentation", requestOptions);
+    setLoading(false);
+    if (!response.ok) {
+      setErrorMessage("Failed to perform test!")
+    } else {
+      setSuccessMessage("The report has been generated successfully. Navigate to the Patient Portal to download the report.")
+    }
+    setId("");
+    setDescription("");
+    
+    await delay(5000); 
+    setErrorMessage("");
+    setSuccessMessage("");
   }
-
-  const handleImageChange = (event) => {
-    setImage(event.target.files[0]);
-  }
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Do something with the form data
-    console.log(`Name: ${name}, ID: ${id}, Image: ${image}`);
-  }
-
   return (
     <div>
       <NavBar />
@@ -40,30 +69,46 @@ function NerveSegmentation() {
           <br/><br/>
             Various image processing and machine learning techniques have been developed for the segmentation of the optic nerve head from retinal fundus images. These techniques typically involve preprocessing the image to enhance the contrast and remove noise, followed by feature extraction and segmentation using methods such as thresholding, region growing, active contours, or deep learning.
           </p>
-          <Container className="d-flex" style={{ minHeight: "80vh" , marginTop: "-7%"}}>
+          <Container className="d-flex" style={{ minHeight: "80vh" }}>
             <Row className="align-items-center">
               <Col md={6}>
                 <h2 className="text-center mb-4">Enter Patient Details</h2>
                 <Form onSubmit={handleSubmit}>
-                  <Form.Group className="mb-3" controlId="formName">
-                    <Form.Label className="d-flex">Patient ID</Form.Label>
-                    <Form.Control type="text" placeholder="Enter Patient ID" value={name} onChange={handleNameChange} className="form-input" />
-                  </Form.Group>
                   <Form.Group className="mb-3" controlId="formId">
-                    <Form.Label className="d-flex">Description</Form.Label>
-                    <Form.Control type="text" placeholder="Enter Patient Description" value={id} onChange={handleIdChange} className="form-input" />
+                    <Form.Label className="d-flex">Patient ID</Form.Label>
+                    <Form.Control 
+                      type="text" 
+                      placeholder="Enter Patient ID" 
+                      value={id} 
+                      onChange={(e) => setId(e.target.value)} 
+                      className="form-input" />
                   </Form.Group>
+
+                  <Form.Group className="mb-3" controlId="formDescription">
+                    <Form.Label className="d-flex">Description</Form.Label>
+                    <Form.Control type="text" 
+                      placeholder="Enter Patient Description" 
+                      value={description} 
+                      onChange={(e) => setDescription(e.target.value)} 
+                      className="form-input" />
+                  </Form.Group>
+                  
                   <Form.Group className="mb-3" controlId="formImage">
                     <Form.Label className="d-flex">Scan</Form.Label>
-                    <Form.Control type="file" onChange={handleImageChange} className="form-input" />
+                    <Form.Control 
+                      type="file" 
+                      onChange={(e) => setImage(e.target.files[0])} 
+                      className="form-input" />
                   </Form.Group>
+                  <ErrorMessage message={errormessage}/>
+                  <SuccessMessage message={successmessage}/> 
                   <Button variant="primary" type="submit" className="submit-btn" style={{ "marginTop": "2%" }}>
-                    Submit
+                    {loading ? <Spinner animation="border" size="xl" /> : "Submit"}
                   </Button>
                 </Form>
               </Col>
               <Col md={6}>
-                <Image src={"/images/retinal_image.jpeg"} alt="Your Image" fluid style={{ "max-width": "100%", "height": "auto", "marginLeft": "50%" }} />
+                <Image src={"/images/retinal_image.jpeg"} alt="Your Image" fluid style={{ "max-width": "auto", "height": "auto", }} />
               </Col>
             </Row>
           </Container>

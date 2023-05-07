@@ -27,10 +27,10 @@ Model Loading
 ----------------------------------------------------------------
 """
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-disease_model = 0
-risk_model = 0
-# disease_model = tf.keras.models.load_model('tf_models/multiclass_classification/mobilenet_model', compile=False)
-# risk_model = tf.keras.models.load_model('tf_models/binary_classification/efficientnetv2m_model')
+# disease_model = 0
+# risk_model = 0
+disease_model = tf.keras.models.load_model('tf_models/multiclass_classification/mobilenet_model', compile=False)
+risk_model = tf.keras.models.load_model('tf_models/binary_classification/efficientnetv2m_model')
 segmentation_model = build_unet()
 segmentation_model = segmentation_model.to(device)
 segmentation_model.load_state_dict(
@@ -313,6 +313,17 @@ async def create_new_patient(
 async def get_patients_for_doctor(doctor: schemas.Doctor, db: orm.Session):
     patients = (
         db.query(models.Patient).filter(models.Patient.doctor_id == doctor.id).all()
+    )
+
+    return list(map(schemas.Patient.from_orm, patients))
+
+
+async def get_patients_for_doctor_by_name(first_name: str, doctor: schemas.Doctor, db: orm.Session):
+    patients = (
+        db.query(models.Patient)
+        .filter(models.Patient.doctor_id == doctor.id)
+        .filter(models.Patient.first_name == first_name)
+        .all()
     )
 
     return list(map(schemas.Patient.from_orm, patients))
